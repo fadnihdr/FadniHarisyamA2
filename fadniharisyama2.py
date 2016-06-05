@@ -1,11 +1,12 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.button import Button
-
+from kivy.uix.togglebutton import ToggleButton
 
 class MyApp(App):
     def __init__(self, **kwargs):
         super(MyApp, self).__init__(**kwargs)
+
 
 
     def build(self):
@@ -19,10 +20,12 @@ class MyApp(App):
         for each_line in file:
             name, item_desc, cost, status = each_line.split(",")
             if "in" in status:
-                temp_button = Button(text=name, background_color=(0, 1, 0, 1))
+                temp_button = ToggleButton(text=name, background_color=(0, 1, 0, 1))
             else:
-                temp_button = Button(text=name, background_color=(0.9, 0, 0.9, 1))
+                temp_button = ToggleButton(text=name, background_color=(0.9, 0, 0.9, 1))
+            temp_button.bind(on_press=self.press_item)
             self.root.ids.items_buttons.add_widget(temp_button)
+
         file.close()
 
     def itemlist(self):
@@ -74,5 +77,24 @@ class MyApp(App):
         self.root.ids.descinput.text = ""
         self.root.ids.ppdinput.text = ""
         self.root.ids.popup_label.text = "Enter details for new item"
+
+    def press_item(self, instance):
+        file = open('items.csv', 'r')
+        for line in file:
+            name, item_desc, cost, status = line.split(",")
+            if instance.text == name:
+                if self.root.ids.list_button.background_color == [0, 0.5, 0.8, 1]:
+                    self.root.ids.label.text = "{} ({}), ${} is {}".format(name, item_desc, float(cost), status)
+                elif self.root.ids.hire_button.background_color == [0, 0.5, 0.8, 1]:
+                    if "in" in status:
+                        self.root.ids.label.text = "Hiring: {} for ${}".format(name, float(cost))
+                    else:
+                        self.root.ids.label.text = "Cannot hire that item"
+                elif self.root.ids.return_button.background_color == [0, 0.5, 0.8, 1]:
+                    if "out" in status:
+                        self.root.ids.label.text = "Returning: {}".format(name)
+                    else:
+                        self.root.ids.label.text = "Cannot return that item"
+
 
 MyApp().run()
