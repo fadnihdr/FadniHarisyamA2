@@ -1,3 +1,9 @@
+"""
+itemlist.py
+
+any input that goes here will be stored in a list, for
+"""
+
 class ItemList:
     def __init__(self):
         self.temp = []
