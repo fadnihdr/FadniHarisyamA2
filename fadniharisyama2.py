@@ -1,12 +1,16 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
+from itemlist import *
+
 
 class MyApp(App):
     def __init__(self, **kwargs):
         super(MyApp, self).__init__(**kwargs)
-
+        self.item_list = ItemList()
+        self.instance_down = [] # placeholder for selected items
+        read_items = open('items.csv', 'r+')
+        # read_items = open('items.csv', 'a') --> io.UnsupportedOperation: not readable
 
 
     def build(self):
@@ -15,17 +19,16 @@ class MyApp(App):
         self.itemlist()
         return self.root
 
-    def create_buttons(self):
+    def itembuttons(self):
         file = open('items.csv', 'r')
         for each_line in file:
             name, item_desc, cost, status = each_line.split(",")
             if "in" in status:
-                temp_button = ToggleButton(text=name, background_color=(0, 1, 0, 1))
+                temp_button = Button(text=name, background_color=(0, 1, 0, 1))
             else:
-                temp_button = ToggleButton(text=name, background_color=(0.9, 0, 0.9, 1))
+                temp_button = Button(text=name, background_color=(0.9, 0, 0.9, 1))
             temp_button.bind(on_press=self.press_item)
             self.root.ids.items_buttons.add_widget(temp_button)
-
         file.close()
 
     def itemlist(self):
@@ -36,7 +39,7 @@ class MyApp(App):
         self.root.ids.return_button.background_color = (1, 1, 1, 1)
         self.root.ids.confirm.background_color = (1, 1, 1, 1)
         self.root.ids.add_item.background_color = (1, 1, 1, 1)
-        self.create_buttons()
+        self.itembuttons()
 
     def itemreturn(self):
         self.root.ids.items_buttons.clear_widgets()
@@ -46,7 +49,7 @@ class MyApp(App):
         self.root.ids.return_button.background_color = (0, 0.5, 0.8, 1)
         self.root.ids.confirm.background_color = (1, 1, 1, 1)
         self.root.ids.add_item.background_color = (1, 1, 1, 1)
-        self.create_buttons()
+        self.itembuttons()
 
     def itemhire(self):
         self.root.ids.items_buttons.clear_widgets()
@@ -56,18 +59,38 @@ class MyApp(App):
         self.root.ids.return_button.background_color = (1, 1, 1, 1)
         self.root.ids.confirm.background_color = (1, 1, 1, 1)
         self.root.ids.add_item.background_color = (1, 1, 1, 1)
-        self.create_buttons()
+        self.itembuttons()
 
     def additem(self):
         self.root.ids.popup.open()
 
     def saveitem(self, name, item_desc, cost):
-        add_item = "\n{},{},{},in".format(name, item_desc, cost)
-        with open("items.csv", "a") as file:
-            file.writelines(add_item)
-        print('Writing success')
-        self.exit_popup()
-        self.itemlist()
+
+        def valid(cost):
+            try:
+                float(cost)
+                return True
+            except ValueError:
+                return False
+
+        if len(self.root.ids.iteminput.text.strip()) == 0 or len(self.root.ids.descinput.text.strip()) == 0 or len(
+                self.root.ids.ppdinput.text.strip()) == 0:
+            self.root.ids.popup_label.text = "All fields must be completed"
+        elif valid(cost) == False:
+            self.press_cancel()
+            self.root.ids.popup_label.text = "Price must be valid number"
+        elif valid(cost) == True and float(
+                self.root.ids.ppdinput.text) < 0:
+            self.press_cancel()
+            self.root.ids.popup_label.text.text = "Price cannot be negative"
+        else:
+            add_item = "\n{},{},{},in".format(name, item_desc, cost)
+            with open("items.csv", "a") as file:
+                file.writelines(add_item)
+            print('Writing success')
+            self.press_cancel()
+            self.exit_popup()
+            self.itemlist()
 
     def exit_popup(self):
         self.root.ids.popup.dismiss()
