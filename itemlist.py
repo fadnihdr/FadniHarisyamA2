@@ -8,7 +8,7 @@ class ItemList:
     def __len__(self):
         return len(self.temp)
 
-    def store(self, item):
+    def add(self, item):
         self.temp.append(item)
 
     def clear(self):
